@@ -107,11 +107,11 @@ def log():
     g.request_id = uuid.uuid1().hex
     # Call function and come back data from request in dict type
     raw_req_data = save_request(g.request_id,request)
-    task_request = tasks(g.request_id,raw_req_data)
+    task_request = tasks(g.request_id,json.dumps(raw_req_data))
     # Make data for Responce function for responce to website
     resp = Response(json.dumps(raw_req_data, indent=4, default=str), mimetype="application/json")
     app.logger.info(task_request)
-    app.logger.info(raw_req_data)
+    app.logger.info(json.dumps(raw_req_data))
     return resp
 
 if __name__ == '__main__':
