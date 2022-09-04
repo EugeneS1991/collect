@@ -109,43 +109,5 @@ def log():
     resp = Response(json.dumps(raw_req_data, indent=4, default=str), mimetype="application/json")
     return resp
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
-    app.run(debug=False, port=80, host='0.0.0.0')
+    app.run(host='0.0.0.0', port=8080, threaded=True, debug=False)
