@@ -1,6 +1,9 @@
 import json
 import uuid
 import time
+import datetime
+from google.cloud import tasks_v2
+from google.protobuf import duration_pb2, timestamp_pb2
 from google.cloud import bigquery
 import requests
 from flask import Flask, request, Response, g, redirect
@@ -34,42 +37,116 @@ def save_request(request_id,request):
 #     return resp_data
 #
 
-@app.route('/',methods=['GET', 'POST'])
+def tasks(request_id,task_request):
+    data = task_request
+    GOOGLE_APPLICATION_CREDENTIALS = 'abiding-circle-361417-3db947b58dfd.json'
+    client = tasks_v2.CloudTasksClient.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS)
+    project = 'abiding-circle-361417'
+    queue = 'cloud-run'
+    location = 'europe-west1'
+    url = 'https://my-application-process-a5nbasjb4q-ew.a.run.app/process'
+    payload = data  # or {'param': 'value'} for application/json
+    in_seconds = 10
+    task_name = request_id
+    deadline = 100
+    # Construct the fully qualified queue name.
+    parent = client.queue_path(project, location, queue)
+
+    # Construct the request body.
+    task = {
+        "http_request": {  # Specify the type of request.
+            "http_method": tasks_v2.HttpMethod.POST,
+            "url": url,  # The full url path that the task will be sent to.
+        }
+    }
+    if payload is not None:
+        if isinstance(payload, dict):
+            # Convert dict to JSON string
+            payload = json.dumps(payload)
+            # specify http content-type to application/json
+            task["http_request"]["headers"] = {"Content-type": "application/json"}
+
+        # The API expects a payload of type bytes.
+        converted_payload = payload.encode()
+
+        # Add the payload to the request.
+        task["http_request"]["body"] = converted_payload
+
+    if in_seconds is not None:
+        # Convert "seconds from now" into an rfc3339 datetime string.
+        d = datetime.datetime.utcnow() + datetime.timedelta(seconds=in_seconds)
+
+        # Create Timestamp protobuf.
+        timestamp = timestamp_pb2.Timestamp()
+        timestamp.FromDatetime(d)
+
+        # Add the timestamp to the tasks.
+        task["schedule_time"] = timestamp
+
+    if task_name is not None:
+        # Add the name to tasks.
+        task["name"] = client.task_path(project, location, queue, task_name)
+
+    if deadline is not None:
+        # Add dispatch deadline for requests sent to the worker.
+        duration = duration_pb2.Duration()
+        duration.FromSeconds(deadline)
+        task["dispatch_deadline"] = duration
+
+    # Use the client to build and send the task.
+    response = client.create_task(request={"parent": parent, "task": task})
+    print("Created task {}".format(response.name))
+
+    return "Created task {}".format(response.name)
+
+@app.route('/collect',methods=['GET', 'POST'])
 def log():
     # Create Hesh for every row
     g.request_id = uuid.uuid1().hex
-    # Call function and come back data from request
+    # Call function and come back data from request in dict type
     raw_req_data = save_request(g.request_id,request)
-    # Make data for Responce function
-    # resp = Response(json.dumps(raw_req_data, indent=4, default=str), mimetype="application/json")
-
-    url = 'http://127.0.0.1:80/process'
-    headers = {'Content-type': 'text/html; charset=UTF-8'}
-    response = requests.post(url, data=json.dumps(raw_req_data), headers=headers)
+    task_request = tasks(g.request_id,raw_req_data)
+    # Make data for Responce function for responce to website
+    resp = Response(json.dumps(raw_req_data, indent=4, default=str), mimetype="application/json")
+    return resp
 
 
-    # json.dumps(raw_req_data)
-# # -------------------------------------------BQ---------------------------------------
-# Create list for convert it in json and poot to BQ
-#     rows_to_insert = []
-#     rows_to_insert.append({
-#         'data': json.dumps(raw_req_data),
-#         'request_id': raw_req_data.get('request_id'),
-#         'ad_timestamp': int(time.time_ns() / 1000)
-#     })
 
-    # GOOGLE_APPLICATION_CREDENTIALS = 'streaming-bq-e8b723d246f1.json'
-    # bigquery_client = bigquery.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS)
-    # dataset_id = bigquery_client.dataset('cloudRun')
-    # table_id = dataset_id.table('cloud_run')
-    # errors = bigquery_client.insert_rows_json(table_id, rows_to_insert)  # Make an API request.
-    # if errors == []:
-    #     print("New rows have been added.")
-    # else:
-    #     print("Encountered errors while inserting rows: {}".format(errors))
-# ------------------------------------------------------------------------------------
 
-    return {'test': response.status_code}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
-    app.run(debug=False, port=8080, host='0.0.0.0')
+    app.run(debug=False, port=80, host='0.0.0.0')
