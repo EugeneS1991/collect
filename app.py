@@ -8,7 +8,10 @@ from google.cloud import bigquery
 import requests
 from flask import Flask, request, Response, g, redirect
 from google.cloud import tasks_v2
+import logging
 app = Flask(__name__)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 # Create table with data which we want see in Responce and in Data Base
 def save_request(request_id,request):
     req_data = {}
@@ -107,6 +110,8 @@ def log():
     task_request = tasks(g.request_id,raw_req_data)
     # Make data for Responce function for responce to website
     resp = Response(json.dumps(raw_req_data, indent=4, default=str), mimetype="application/json")
+    app.logger.info(task_request)
+    app.logger.info(raw_req_data)
     return resp
 
 if __name__ == '__main__':
