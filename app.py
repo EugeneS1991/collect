@@ -39,8 +39,7 @@ def save_request(request_id,request):
 
 def tasks(request_id,task_request):
     data = task_request
-    GOOGLE_APPLICATION_CREDENTIALS = 'abiding-circle-361417-3db947b58dfd.json'
-    client = tasks_v2.CloudTasksClient.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS)
+    client = tasks_v2.CloudTasksClient()
     project = 'abiding-circle-361417'
     queue = 'cloud-run'
     location = 'europe-west1'
