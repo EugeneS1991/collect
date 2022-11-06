@@ -1,12 +1,10 @@
 import json
 import uuid
 import time
-import datetime
 from google.cloud import tasks_v2
 from google.protobuf import duration_pb2, timestamp_pb2
 from google.cloud import bigquery
 from flask import Flask, request, Response, g, redirect
-from google.cloud import tasks_v2
 import logging
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -29,7 +27,6 @@ def save_request(request_id,request):
     req_data['url'] = request.url
     req_data['path'] = request.path
     req_data['remote_addr'] = request.remote_addr
-    print(req_data)
     return req_data
 
 # def save_response(request_id, resp):
@@ -62,6 +59,7 @@ def log():
     # Call function and come back data from request in dict type
     req_data = save_request(g.request_id,request)
     # Make data for Responce function for responce to website
+
     resp = Response(json.dumps(req_data, indent=4, default=str), mimetype="application/json")
     return resp
 
