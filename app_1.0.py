@@ -39,7 +39,7 @@ def save_request(request_id,request):
 #     # resp_data['headers'].get('Set-Cookie')
 #     print(resp_data)
 #     return resp_data
-# #
+#
 
 @app.after_request
 def after_request(resp):
@@ -59,7 +59,6 @@ def log():
     # Call function and come back data from request in dict type
     req_data = save_request(g.request_id,request)
     # Make data for Responce function for responce to website
-
     resp = Response(json.dumps(req_data, indent=4, default=str), mimetype="application/json")
     return resp
 
