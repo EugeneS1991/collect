@@ -49,6 +49,7 @@ def after_request(resp):
     resp.headers.add('Access-Control-Allow-Credentials', True)
     resp.data = {}
     # resp_data = save_response(g.request_id, resp)
+    print(resp.headers)
     # print('Response:: ', json.dumps(resp_data, indent=4))
     return resp
 
