@@ -45,8 +45,8 @@ def save_request(request_id,request):
 def after_request(resp):
     cookie = resp.get_json(force=True).get('uuid')
     resp.set_cookie('uuid', value=cookie, max_age=63072000, httponly=True, samesite=None)
-    # resp.headers.add('Access-Control-Allow-Origin', '*')
-    # resp.headers.add('Access-Control-Allow-Credentials', True)
+    resp.headers.add('Access-Control-Allow-Origin', '*')
+    resp.headers.add('Access-Control-Allow-Credentials', True)
     resp.data = {}
     # resp_data = save_response(g.request_id, resp)
     # print('Response:: ', json.dumps(resp_data, indent=4))
