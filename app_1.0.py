@@ -22,11 +22,12 @@ def save_request(request_id,request):
     req_data['timestamp'] = int(time.time_ns() / 1000)
     req_data['data'] = request.data.decode("utf-8")
     req_data['headers'] = dict(request.headers)
-    req_data['headers'].pop('Cookie', None)
+    # req_data['headers'].pop('Cookie', None)
     req_data['args'] = dict(request.args)
     req_data['url'] = request.url
     req_data['path'] = request.path
     req_data['remote_addr'] = request.remote_addr
+    # print(req_data['headers'])
     return req_data
 
 # def save_response(request_id, resp):
@@ -46,14 +47,14 @@ def after_request(resp):
     cookie = resp.get_json(force=True).get('uuid')
     resp.set_cookie('uuid', value=cookie, max_age=63072000, httponly=True, samesite=None)
     resp.headers.add('Access-Control-Allow-Origin', '*')
-    resp.headers.add('Access-Control-Allow-Credentials', True)
-    resp.data = {}
+    resp.headers.add('Access-Control-Allow-Credential', True)
+    # resp.data = {}
     # resp_data = save_response(g.request_id, resp)
-    print(resp.headers)
+    # print(resp.headers)
     # print('Response:: ', json.dumps(resp_data, indent=4))
     return resp
 
-@app.route('/collect',methods=['GET', 'POST'])
+@app.route('/collect',methods=['GET', 'POST','OPTIONS'])
 def log():
     # Create Hesh for every row
     g.request_id = uuid.uuid1().hex
@@ -64,4 +65,4 @@ def log():
     return resp
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, threaded=True, debug=False)
+    app.run(host='0.0.0.0', port=80, threaded=True, debug=False)

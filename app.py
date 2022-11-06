@@ -142,11 +142,11 @@ def log():
     task_request = tasks(g.request_id, json.dumps(req_data))
     # Make data for Responce function for responce to website
     resp = Response(json.dumps(req_data, indent=4, default=str), mimetype="application/json")
-    app.logger.info(task_request)
-    app.logger.info(json.dumps(req_data))
+    app.logger.info("my_log_1: ", task_request)
+    app.logger.info("my_log_2: ",json.dumps(req_data))
     return resp
 
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, threaded=True, debug=False)
+    app.run(host='0.0.0.0', port=80, threaded=True, debug=False)
