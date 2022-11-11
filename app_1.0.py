@@ -57,12 +57,13 @@ def after_request(resp):
     resp.set_cookie('uuid', value=cookie, max_age=63072000, httponly=True, samesite=None)
     resp.headers.add('Access-Control-Allow-Origin', '*')
     resp.headers.add('Access-Control-Allow-Credential', True)
+    resp.headers.add('cross-origin-resource-policy','cross-origin')
     resp_data = save_response(g.request_id, resp)
     resp.data = json.dumps(resp_data, indent=4)
     # print('Response:: ', json.dumps(resp_data, indent=4))
     return resp
 
-@app.route('/collect',methods=['GET', 'POST','OPTIONS'])
+@app.route('/collect',methods=['GET', 'POST'])
 def log():
 
     # Create Hesh for every row
