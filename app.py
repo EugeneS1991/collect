@@ -6,9 +6,11 @@ from google.cloud import tasks_v2
 from google.protobuf import duration_pb2, timestamp_pb2
 from google.cloud import bigquery
 from flask import Flask, request, Response, g, redirect
+from flask_cors import CORS, cross_origin
 from google.cloud import tasks_v2
 import logging
 app = Flask(__name__)
+CORS(app)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 # Create table with data which we want see in Responce and in Data Base
