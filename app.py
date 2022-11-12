@@ -31,29 +31,34 @@ def save_request(request_id, request):
     req_data['remote_addr'] = request.remote_addr
     return req_data
 
-# def save_response(request_id, resp):
-#     resp_data = {}
-#     resp_data['request_id'] = request_id
-#     # resp_data['uuid'] = resp.headers
-#     resp_data['status'] = resp.status
-#     # resp_data['headers'] = dict(resp.headers)
-#     #resp_data['data'] = dict(resp.get_json())
-#     # resp_data['headers'].get('Set-Cookie')
-#     print(resp_data)
-#     return resp_data
-#
+def save_response(request_id, resp):
+    resp_data = {}
+    resp_data['request_id'] = request_id
+    # resp_data['uuid'] = resp.headers
+    # resp_data['status'] = resp.status
+    # resp_data['headers'] = dict(resp.headers)
+    # resp_data['data'] = 'data'
+    return resp_data
 
 @app.after_request
 def after_request(resp):
-    cookie = resp.get_json(force=True).get('uuid')
-    resp.set_cookie('uuid', value=cookie, max_age=63072000, httponly=True, samesite='None')
+    # cookie = resp.get_json(force=True).get('uuid')
+    # resp.set_cookie('uuid', value=cookie, max_age=63072000, httponly=True, samesite='None')
+    # resp.headers.add('Access-Control-Allow-Origin', '*')
+    # resp.headers.add('Access-Control-Allow-Credentials', True)
+    # # resp.data = {}
+    # # resp_data = save_response(g.request_id, resp)
+    # # print('Response:: ', json.dumps(resp_data, indent=4))
+    # return resp
+
+    cookie = resp.json.get('uuid')
+    resp.set_cookie('uuid', value=cookie, max_age=63072000, httponly=True, samesite=None)
     resp.headers.add('Access-Control-Allow-Origin', '*')
-    resp.headers.add('Access-Control-Allow-Credentials', True)
-    # resp.data = {}
-    # resp_data = save_response(g.request_id, resp)
+    resp.headers.add('Access-Control-Allow-Credential', True)
+    resp_data = save_response(g.request_id, resp)
+    resp.data = json.dumps(resp_data)
     # print('Response:: ', json.dumps(resp_data, indent=4))
     return resp
-
 
 def tasks(request_id, task_request):
     data = task_request
@@ -116,10 +121,6 @@ def tasks(request_id, task_request):
 
     return "Created task {}".format(response.name)
 
-
-
-
-
 @app.route('/collect',methods=['GET', 'POST'])
 def log():
     # correct with tasks
@@ -145,8 +146,6 @@ def log():
     app.logger.info("my_log_1: ", task_request)
     app.logger.info("my_log_2: ",json.dumps(req_data))
     return resp
-
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, threaded=True, debug=False)
