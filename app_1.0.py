@@ -5,8 +5,12 @@ from google.cloud import tasks_v2
 from google.protobuf import duration_pb2, timestamp_pb2
 from google.cloud import bigquery
 from flask import Flask, request, Response, g, redirect
+from flask_cors import CORS, cross_origin
 import logging
 app = Flask(__name__)
+# CORS(app)
+# cors = CORS(app, resources={r"*": {"origins": "localhost"}})
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 # Create table with data which we want see in Responce and in Data Base
@@ -17,10 +21,10 @@ def save_request(request_id,request):
     uuid = dict(request.cookies).get('uuid')
     if uuid is None:
         req_data['uuid'] = g.request_id
-        # print("is_null:" ,req_data['uuid'])
+        print("is_null:" ,req_data['uuid'])
     else:
         req_data['uuid'] = uuid
-        # print("is_not_null:", req_data['uuid'])
+        print("is_not_null:", req_data['uuid'])
     req_data['timestamp'] = int(time.time_ns() / 1000)
     req_data['data'] = request.data.decode("utf-8")
     req_data['headers'] = dict(request.headers)
@@ -41,12 +45,11 @@ def save_request(request_id,request):
 
 def save_response(request_id, resp):
     resp_data = {}
-    # resp_data['request_id'] = request_id
+    resp_data['request_id'] = request_id
     # resp_data['uuid'] = resp.headers
     # resp_data['status'] = resp.status
     # resp_data['headers'] = dict(resp.headers)
-    resp_data['data'] = 'data'
-    # resp_data['headers'].get('Set-Cookie')
+    # resp_data['data'] = 'data'
     return resp_data
 
 
@@ -54,16 +57,19 @@ def save_response(request_id, resp):
 def after_request(resp):
     cookie = resp.json.get('uuid')
     print(cookie)
+    print(type(cookie))
     resp.set_cookie('uuid', value=cookie, max_age=63072000, httponly=True, samesite=None)
     resp.headers.add('Access-Control-Allow-Origin', '*')
-    resp.headers.add('Access-Control-Allow-Credential', True)
-    resp.headers.add('cross-origin-resource-policy','cross-origin')
+
+    # resp.headers.add('Access-Control-Allow-Credential', True)
+
     resp_data = save_response(g.request_id, resp)
-    resp.data = json.dumps(resp_data, indent=4)
+    resp.data = json.dumps(resp_data)
     # print('Response:: ', json.dumps(resp_data, indent=4))
     return resp
 
-@app.route('/collect',methods=['GET', 'POST'])
+@app.route('/api', methods=['GET', 'POST'])
+# @cross_origin(origins='*')
 def log():
 
     # Create Hesh for every row
@@ -75,4 +81,4 @@ def log():
     return resp
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80, threaded=True, debug=False)
+    app.run(host='0.0.0.0', port=5000, threaded=True, debug=False)
