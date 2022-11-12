@@ -5,7 +5,7 @@ from google.cloud import tasks_v2
 from google.protobuf import duration_pb2, timestamp_pb2
 from google.cloud import bigquery
 from flask import Flask, request, Response, g, redirect
-from flask_cors import CORS, cross_origin
+# from flask_cors import CORS, cross_origin
 import logging
 app = Flask(__name__)
 # CORS(app)
@@ -56,20 +56,15 @@ def save_response(request_id, resp):
 @app.after_request
 def after_request(resp):
     cookie = resp.json.get('uuid')
-    print(cookie)
-    print(type(cookie))
     resp.set_cookie('uuid', value=cookie, max_age=63072000, httponly=True, samesite=None)
     resp.headers.add('Access-Control-Allow-Origin', '*')
-
-    # resp.headers.add('Access-Control-Allow-Credential', True)
-
-    resp_data = save_response(g.request_id, resp)
-    resp.data = json.dumps(resp_data)
+    resp.headers.add('Access-Control-Allow-Credential', True)
+    # resp_data = save_response(g.request_id, resp)
+    # resp.data = json.dumps(resp_data)
     # print('Response:: ', json.dumps(resp_data, indent=4))
     return resp
 
-@app.route('/api', methods=['GET', 'POST'])
-# @cross_origin(origins='*')
+@app.route('/collect', methods=['GET', 'POST','OPTIONS'])
 def log():
 
     # Create Hesh for every row
@@ -81,4 +76,4 @@ def log():
     return resp
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, threaded=True, debug=False)
+    app.run(host='0.0.0.0', port=80, threaded=True, debug=False)
